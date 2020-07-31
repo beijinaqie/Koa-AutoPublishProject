@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+		<script src="https://cdn.bootcdn.net/ajax/libs/axios/0.19.2/axios.min.js"></script>
+		<script src="https://cdn.bootcdn.net/ajax/libs/ant-design-vue/1.5.3/antd.min.js"></script>
+		<link href="https://cdn.bootcdn.net/ajax/libs/ant-design-vue/1.5.3/antd.min.css" rel="stylesheet">
+	</head>
+	<body>
+		<div id="app">
+			<a-row type="flex" style="padding: 20px;">
+				<a-col style="margin-right: 20px;">
+					请选择要上传的库：
+					<a-select v-model="name" style="width: 180px;" placeholder="请选择">
+						<a-select-option 
+							v-for="item in urlList" 
+							:value="item.value"
+						>
+							{{ item.label }}
+						</a-select-option>
+					</a-select>
+				</a-col>
+				<a-col style="margin-right: 20px;">
+					请选择上传的文件：
+					<a-upload
+						name="file"
+						:action="action"
+						@change="handleChange"
+					 >
+						<a-button>点击上传</a-button>
+					 </a-upload>
+				</a-col>
+				<a-col>
+					<a-button type="primary" @click="confirm">确定</a-button>
+				</a-col>
+			</a-row>
+		</div>
+	</body>
+	<script>
+		new Vue({
+			data() {
+				return {
+					action: '/upload',
+					name: undefined,
+					fileUrl: '',
+					urlList: []
+				}
+			},
+			created() {
+				this.getList()
+			},
+			methods: {
+				confirm() {
+					this.update()
+				},
+				handleChange(info) {
+				  if (info.file.status === 'done') {
+					this.$message.success(`${info.file.name} file uploaded successfully`);
+				  } else if (info.file.status === 'error') {
+					this.$message.error(`${info.file.name} file upload failed.`);
+				  }
+				},
+				getList() {
+					axios.get('/list').then(res => {
+						if (res.data.success) {
+							this.urlList = res.data.data
+						}
+					})
+				},
+				update() {
+					axios.post('/update', {
+						name: this.name,
+						fileUrl: this.fileUrl
+					}).then(res => {
+						if (res.data.success) {
+							this.$message.success(res.data.msg)
+						} else {
+							this.$message.error(res.data.msg)
+						}
+					})
+				},
+			}
+		}).$mount('#app')
+	</script>
+</html>
